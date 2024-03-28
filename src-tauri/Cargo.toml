@@ -1,0 +1,21 @@
+[package]
+name = "one"
+version = "0.0.1"
+description = "A Tauri App"
+authors = ["anyway"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[build-dependencies]
+tauri-build = { version = "1", features = [] }
+
+[dependencies]
+tauri = { version = "1", features = [ "dialog-all", "shell-open"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+hidapi = "2.6.1"
+
+[features]
+# This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!
+custom-protocol = ["tauri/custom-protocol"]
