@@ -23,10 +23,13 @@ jobs:
         override: true
 
     - name: Install dependencies
+      working-directory: ./src-tauri
       run: cargo update -p time
 
     - name: Build
+      working-directory: ./src-tauri
       run: cargo build --release
 
     - name: Run tests
+      working-directory: ./src-tauri
       run: cargo test
