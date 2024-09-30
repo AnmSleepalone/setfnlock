@@ -87,25 +87,13 @@ jobs:
           cargo update -p time
           cargo update
 
-      - name: Build the app
-        run: yarn pubhome
-
+      # 安装依赖执行构建，以及推送 github release
+      - name: Install app dependencies and build it
+      # 这里的pubhome要修改为你package.json里面配置的编译命令
+        run: yarn && yarn pubhome
       - uses: tauri-apps/tauri-action@v0.3
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
         with:
-          tagName: v${{ needs.create-release.outputs.RELEASE_VERSION }}
-          releaseName: 'App v${{ needs.create-release.outputs.RELEASE_VERSION }}'
-          releaseBody: 'See the assets to download this version and install.'
-          releaseDraft: false
-          prerelease: false
-
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: ${{ steps.tauri.outputs.artifactPath }}
-          asset_name: ${{ steps.tauri.outputs.artifactName }}
-          asset_content_type: application/octet-stream
+          releaseId: ${{ needs.create-release.outputs.RELEASE_UPLOAD_ID }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
