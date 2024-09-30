@@ -1,93 +1,241 @@
 <template>
-  <div class="center-container">
-    <button class="btn btn-on" :class="{ active: !isActive }" @click="toggleSwitch(true)">打开</button>
-    <button class="btn btn-off" :class="{ active: isActive }" @click="toggleSwitch(false)">关闭</button>
+  <div class="box">
+    <div class="help-link">
+      <div  @click="showHelp">
+        帮助
+      </div>
+     <div @click="showCmd">
+      命令行用法
+     </div>
+    </div>
+    <div class="switch-container">
+      <button 
+        class="switch-btn on" 
+        :class="{ active: !isActive }" 
+        @click="toggleSwitch(true)"
+      >
+        打开
+        <span class="info-icon" @click.stop="showInfo('on')">?</span>
+      </button>
+      
+      <button 
+        class="switch-btn off" 
+        :class="{ active: isActive }" 
+        @click="toggleSwitch(false)"
+      >
+        关闭
+        <span class="info-icon" @click.stop="showInfo('off')">?</span>
+      </button>
+    </div>
+
+    <div v-if="showPopup" class="popup-overlay" @click="closePopup">
+      <div class="popup-content" @click.stop>
+        <h3>{{ popupTitle }}</h3>
+        <p>{{ popupContent }}</p>
+        <button @click="closePopup">关闭</button>
+      </div>
+    </div>
   </div>
-  <div class="instructions">
-    <span class="action">打开：</span> 打开fn键锁定，允许使用普通的 F1-F12 键功能。
-    <br>
-    <span class="action">关闭：</span> 关闭fn键锁定，按下 F1-F12 将执行键盘的特殊功能。
-  </div>
-  <hr>
-  <small class="sn">确认已经连接上了键盘,不行就多点几次,程序不用后台运行,点好关闭就行</small>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { invoke } from '@tauri-apps/api/tauri';
 
-
-
 const isActive = ref(false);
+const showPopup = ref(false);
+const popupTitle = ref('');
+const popupContent = ref('');
 
 const toggleSwitch = (state: boolean) => {
   isActive.value = state;
   let canFn = isActive.value;
   invoke("toggle_switch", { canFn: canFn })
-    .then((res) => alert(res))
+    .then((res) => {
+      popupTitle.value = '执行结果';
+      popupContent.value = res;
+      showPopup.value = true;
+    })
 };
 
+const showInfo = (type: 'on' | 'off') => {
+  popupTitle.value = type === 'on' ? '打开' : '关闭';
+  popupContent.value = type === 'on' 
+    ? '打开fn键锁定，允许使用普通的 F1-F12 键功能。'
+    : '关闭fn键锁定，按下 F1-F12 将执行键盘的特殊功能。';
+  showPopup.value = true;
+};
 
+const showHelp = () => {
+  popupTitle.value = '帮助信息';
+  popupContent.value = '确认已经连接上了键盘,不行就多点几次,程序不用后台运行,点好关闭就行';
+  showPopup.value = true;
+};
+
+const showCmd = () => {
+  popupTitle.value = '命令行用法';
+  popupContent.value = '用法:  setfn.exe -m  lock/unlock         \n           锁住:  setfn.exe -m  lock   (使用普通的f1f2)      \n     解锁:  setfn.exe -m unlock  (使用键盘特殊功能)';
+  showPopup.value = true;
+};
+
+const closePopup = () => {
+  showPopup.value = false;
+};
+
+onMounted(() => {
+  // 检查系统是否处于暗黑模式
+  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    document.body.classList.add('dark-mode');
+  }
+
+  // 监听系统暗黑模式变化
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+    if (e.matches) {
+      document.body.classList.add('dark-mode');
+    } else {
+      document.body.classList.remove('dark-mode');
+    }
+  });
+});
 </script>
 
 <style scoped>
+div,body,html {
+  margin: 0;
+  padding: 0;
+}
 
-/* 禁止选中文本 */
-div,.sn{
-    -webkit-touch-callout: none; /* iOS Safari */
-    -webkit-user-select: none; /* Safari */
-    -khtml-user-select: none; /* Konqueror HTML */
-    -moz-user-select: none; /* Old versions of Firefox */
-    -ms-user-select: none; /* Internet Explorer/Edge */
-    user-select: none; /* Non-prefixed version, currently supported by Chrome and Opera */
-  }
-.center-container {
+.container {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+}
+.box{
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
   align-items: center;
 }
 
-.instructions {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  font-size: 16px;
-  line-height: 1.6;
-  color: #333;
-  margin-top: 33px;
-}
-
-.action {
-  font-weight: bold;
-  color: #0070c9;
-  /* Apple's official blue color */
-  margin-right: 5px;
-}
-
-.btn {
-  padding: 10px 20px;
-  border-radius: 5px;
-  font-size: 16px;
-  margin: 0 10px;
+.help-link {
+  align-self: flex-start;
+  width: 100%;
+  margin-bottom: 20px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  color: #084DCD;
+  text-decoration: underline;
 }
 
-.btn-on {
-  background-color: #3aac3d;
+.switch-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 30px;
+}
+
+.switch-btn {
+  width: 200px;
+  padding: 15px;
+  margin: 10px 0;
+  border: none;
+  border-radius: 50px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.switch-btn.on {
+  background-color: #4CAF50;
   color: white;
 }
 
-.btn-off {
-  background-color: #b12c22;
+.switch-btn.off {
+  background-color: #f44336;
   color: white;
 }
 
-.active {
+.switch-btn.active {
   opacity: 0.6;
 }
-.sn{
-  color: #333;
-  font-size: 10px;
-  align-content: center;
+
+.info-icon {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: help;
 }
 
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  white-space: pre-line;
+  z-index: 1000;
+}
+
+.popup-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 5px;
+  max-width: 80%;
+  text-align: center;
+  white-space: pre-line;
+}
+
+.popup-content button {
+  margin-top: 10px;
+  padding: 5px 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+/* 暗黑模式样式 */
+@media (prefers-color-scheme: dark) {
+  .container {
+    background-color: #1a1a1a;
+    color: #ffffff;
+  }
+
+  .help-link {
+    color: #3CB1FB;
+  }
+
+  .popup-content {
+    background-color: #2a2a2a;
+    color: #ffffff;
+  }
+
+  .popup-content button {
+    background-color: #4da3ff;
+  }
+}
+
+/* 禁止选中文本 */
+* {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
 </style>
