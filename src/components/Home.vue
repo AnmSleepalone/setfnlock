@@ -1,28 +1,20 @@
 <template>
   <div class="box">
     <div class="help-link">
-      <div  @click="showHelp">
+      <div @click="showHelp">
         帮助
       </div>
-     <div @click="showCmd">
-      命令行用法
-     </div>
+      <div @click="showCmd">
+        命令行用法
+      </div>
     </div>
     <div class="switch-container">
-      <button 
-        class="switch-btn on" 
-        :class="{ active: !isActive }" 
-        @click="toggleSwitch(true)"
-      >
+      <button class="switch-btn on" :class="{ active: !isActive }" @click="toggleSwitch(true)">
         打开
         <span class="info-icon" @click.stop="showInfo('on')">?</span>
       </button>
-      
-      <button 
-        class="switch-btn off" 
-        :class="{ active: isActive }" 
-        @click="toggleSwitch(false)"
-      >
+
+      <button class="switch-btn off" :class="{ active: isActive }" @click="toggleSwitch(false)">
         关闭
         <span class="info-icon" @click.stop="showInfo('off')">?</span>
       </button>
@@ -53,14 +45,18 @@ const toggleSwitch = (state: boolean) => {
   invoke("toggle_switch", { canFn: canFn })
     .then((res) => {
       popupTitle.value = '执行结果';
-      popupContent.value = res;
+      if (typeof res === 'string') {
+        popupContent.value = res;
+      } else {
+        popupContent.value = '未知错误';
+      }
       showPopup.value = true;
     })
 };
 
 const showInfo = (type: 'on' | 'off') => {
   popupTitle.value = type === 'on' ? '打开' : '关闭';
-  popupContent.value = type === 'on' 
+  popupContent.value = type === 'on'
     ? '打开fn键锁定，允许使用普通的 F1-F12 键功能。'
     : '关闭fn键锁定，按下 F1-F12 将执行键盘的特殊功能。';
   showPopup.value = true;
@@ -100,7 +96,9 @@ onMounted(() => {
 </script>
 
 <style scoped>
-div,body,html {
+div,
+body,
+html {
   margin: 0;
   padding: 0;
 }
@@ -111,7 +109,8 @@ div,body,html {
   flex-direction: column;
   align-items: center;
 }
-.box{
+
+.box {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   display: flex;
   flex-direction: column;
